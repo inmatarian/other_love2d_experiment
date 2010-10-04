@@ -18,6 +18,28 @@ function gamestate:update( dt )
   for _, ent in ipairs( self.entities ) do
     ent:update(dt)
   end
+
+  self:detectCollisions()
+end
+
+function gamestate:detectCollisions()
+  -- shitty collision detection
+  local i, j
+  local N = #self.entities
+  for i = 1, N - 1 do
+    local ent1 = self.entities[i]
+    if ent1.solid then
+      for j = i + 1, N do
+        local ent2 = self.entities[j]
+        if ent2.solid and ent1:overlaps(ent2) then
+          ent1.velocity.x, ent2.velocity.x = ent2.velocity.x, ent1.velocity.x
+          ent1.velocity.y, ent2.velocity.y = ent2.velocity.y, ent1.velocity.y
+          ent1.x, ent1.y = ent1.oldpos.x, ent1.oldpos.y
+          ent2.x, ent2.y = ent2.oldpos.x, ent2.oldpos.y
+        end
+      end
+    end
+  end
 end
 
 function gamestate:draw()

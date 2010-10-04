@@ -13,11 +13,13 @@ function entity:init()
   self.w = 0
   self.h = 0
 
+  self.solid = true
+
   self.velocity = { x = 0, y = 0 }
   self.maxvelocity = { x = 0, y = 0 }
   self.acceleration = { x = 0, y = 0 }
   self.drag = { x = 0, y = 0 }
-  self.hull = { x = 0, y = 0, w = 0, h = 0 }
+  self.oldpos = { x = 0, y = 0 }
 end
 
 function entity:draw()
@@ -25,7 +27,7 @@ function entity:draw()
 end
 
 function entity:update( dt )
-  self:prepareCollisionHull()
+  self:saveOldPosition()
   self:move( dt )
 end
 
@@ -66,15 +68,15 @@ function entity:move( dt )
   self.velocity.y = vy
 end
 
-function entity:prepareCollisionHull()
-  self.hull.x = self.x
-  self.hull.y = self.y
-  self.hull.w = self.w
-  self.hull.h = self.h
+function entity:saveOldPosition()
+  self.oldpos.x = self.x
+  self.oldpos.y = self.y
 end
 
-function entity:testCollision( other )
-
-
+function entity:overlaps( other )
+  local max, min = math.max, math.min
+  local l1, r1, u1, d1 = self.x, self.x + self.w, self.y, self.y + self.h
+  local l2, r2, u2, d2 = other.x, other.x + other.w, other.y, other.y + other.h
+  return ( max(l1, l2) <= min(r1, r2) and max(u1, u2) <= min(d1, d2) )
 end
 

@@ -10,50 +10,55 @@ require "entity"
 ----------------------------------------
 local scr_w = love.graphics.getWidth()
 local scr_h = love.graphics.getHeight()
-----------------------------------------
 
+local scr_bounds = {
+  l = scr_w / 3;
+  r = scr_w * 2 / 3;
+  u = scr_h / 3;
+  d = scr_h * 2 / 3
+}
+
+----------------------------------------
 
 TestEnt = entity:subclass()
 
 function TestEnt:init()
   self:superinit( TestEnt )
   
-  self.bounds = {
-    l = scr_w / 3;
-    r = scr_w * 2 / 3;
-    u = scr_h / 3;
-    d = scr_h * 2 / 3
-  }
-
   self.x = scr_w / 2
   self.y = scr_h / 2
+  self.w = 8
+  self.h = 8
 
   self.maxvelocity.x = 96
   self.maxvelocity.y = 96
   self:pingpong( -1 + math.random() * 2, -1 + math.random() * 2 )
 
   self:randomizeColor()
+  self.color.a = 0
+  self.solid = false
 end
 
 function TestEnt:randomizeColor()
+  local A = 255
   local C = 255
   local hue = math.random() * 6.0
   local X = 255 * (1 - math.abs( (hue % 2) - 1 ))
   
-  if hue < 1.0 then     self.color = { r=C, g=X, b=0 }
-  elseif hue < 2.0 then self.color = { r=X, g=C, b=0 }
-  elseif hue < 3.0 then self.color = { r=0, g=C, b=X }
-  elseif hue < 4.0 then self.color = { r=0, g=X, b=C }
-  elseif hue < 5.0 then self.color = { r=X, g=0, b=C }
-  else                  self.color = { r=C, g=0, b=X }
+  if hue < 1.0 then     self.color = { r=C, g=X, b=0, a=A }
+  elseif hue < 2.0 then self.color = { r=X, g=C, b=0, a=A }
+  elseif hue < 3.0 then self.color = { r=0, g=C, b=X, a=A }
+  elseif hue < 4.0 then self.color = { r=0, g=X, b=C, a=A }
+  elseif hue < 5.0 then self.color = { r=X, g=0, b=C, a=A }
+  else                  self.color = { r=C, g=0, b=X, a=A }
   end
 
 end
 
 function TestEnt:draw()
   local c = self.color
-  love.graphics.setColor( c.r, c.b, c.g )
-  love.graphics.circle( "fill", self.x, self.y, 20, 12 )
+  love.graphics.setColor( c.r, c.b, c.g, c.a )
+  love.graphics.rectangle( "fill", self.x, self.y, self.w, self.h )
 end
 
 function TestEnt:pingpong( accx, accy )
@@ -63,7 +68,11 @@ end
 
 function TestEnt:update(dt)
   entity.update( self, dt )
-  local b = self.bounds
+  if self.color.a < 255 then
+    self.color.a = self.color.a + 32 * dt
+    if self.color.a >= 255 then self.color.a = 255; self.solid = true end
+  end
+  local b = scr_bounds
   if self.x < b.l then self:pingpong( 1, false ) end
   if self.x > b.r then self:pingpong( -1, false ) end
   if self.y < b.u then self:pingpong( false, 1 ) end
